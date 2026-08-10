@@ -56,7 +56,7 @@ app.get("/api/leaderboard", async (req, res) => {
     const pool = await getPool();
     const result = await pool
       .request()
-      .query("SELECT TOP 10 id, tiempo_segundos, intentos, fecha FROM Partidas ORDER BY tiempo_segundos ASC, intentos ASC");
+      .query("SELECT TOP 5 id, tiempo_segundos, intentos, fecha FROM Partidas ORDER BY tiempo_segundos ASC, intentos ASC");
     res.json(result.recordset);
   } catch (err) {
     console.error(err);

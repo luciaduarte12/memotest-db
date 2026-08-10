@@ -75,8 +75,8 @@ function App() {
       setIdPartidaActual(resultado.id);
       setPartidaGuardada(true);
 
-      const top10 = await getLeaderboard();
-      setLeaderboard(top10);
+      const top5 = await getLeaderboard();
+      setLeaderboard(top5);
     }
 
     guardarYActualizarRanking();
@@ -117,7 +117,12 @@ function App() {
   }
 
   if (cargando) {
-    return <div className="app">Cargando...</div>;
+    return (
+      <div className="app">
+        <h1>MEMOTEST</h1>
+        <p className="marcador">Cargando el juego, puede tardar unos segundos...</p>
+      </div>
+    );
   }
 
   return (
@@ -128,9 +133,12 @@ function App() {
       {juegoTerminado && (
         <>
           <p className="victoria">¡Ganaste! Completaste el memotest.</p>
+          <p className="tu-resultado">
+            Tu tiempo: <strong>{tiempo}s</strong> con <strong>{intentos}</strong> intentos
+          </p>
           {leaderboard.length > 0 && (
             <div className="leaderboard">
-              <h2>Mejores tiempos</h2>
+              <h2>Top 5 — Histórico de mejores tiempos</h2>
               <ol>
                 {leaderboard.map((partida) => (
                   <li
