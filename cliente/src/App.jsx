@@ -13,6 +13,24 @@ function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [idPartidaActual, setIdPartidaActual] = useState(null);
 
+  const enIframe = window.self !== window.top;
+
+  useEffect(() => {
+    if (!enIframe) return;
+
+    function enviarAltura() {
+      const altura = document.documentElement.scrollHeight;
+      window.parent.postMessage({ tipo: "memotest-altura", altura }, "*");
+    }
+
+    enviarAltura();
+
+    const observer = new ResizeObserver(enviarAltura);
+    observer.observe(document.body);
+
+    return () => observer.disconnect();
+  }, [enIframe]);
+
   useEffect(() => {
     async function cargarJuego() {
       const tecnologias = await getTecnologias();
@@ -82,6 +100,20 @@ function App() {
     guardarYActualizarRanking();
   }, [juegoTerminado, partidaGuardada, tiempo, intentos]);
 
+  useEffect(() => {
+    if (!enIframe) return;
+
+    function avisarAltura() {
+      const altura = document.documentElement.scrollHeight;
+      window.parent.postMessage({ tipo: "memotest-altura", altura }, "*");
+    }
+
+    avisarAltura();
+    const timer = setTimeout(avisarAltura, 100);
+
+    return () => clearTimeout(timer);
+  }, [enIframe, cargando, juegoTerminado]);
+
   function manejarClickCarta(cartaId) {
     if (volteadas.length === 2) return;
     if (volteadas.includes(cartaId) || encontradas.includes(cartaId)) return;
@@ -90,7 +122,6 @@ function App() {
   }
 
   function jugarDeNuevo() {
-    // Sacamos las tecnologias unicas a partir de las cartas actuales, y volvemos a mezclar
     const tecnologiasUnicas = [];
     const idsVistos = new Set();
     for (const carta of cartas) {
@@ -118,7 +149,7 @@ function App() {
 
   if (cargando) {
     return (
-      <div className="app">
+      <div className={`app ${enIframe ? "embebido" : ""}`}>
         <h1>MEMOTEST</h1>
         <p className="marcador">Cargando el juego, puede tardar unos segundos...</p>
       </div>
@@ -126,7 +157,7 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className={`app ${enIframe ? "embebido" : ""}`}>
       <h1>MEMOTEST</h1>
       <p className="marcador">Tiempo: {tiempo}s | Intentos: {intentos}</p>
 
@@ -157,24 +188,26 @@ function App() {
         </>
       )}
 
-      <div className="tablero">
-        {cartas.map((carta) => {
-          const esEncontrada = encontradas.includes(carta.cartaId);
-          const estaVolteada = volteadas.includes(carta.cartaId) || esEncontrada;
-          return (
-            <div
-              key={carta.cartaId}
-              className={`carta ${estaVolteada ? "volteada" : ""} ${esEncontrada ? "encontrada" : ""}`}
-              onClick={() => manejarClickCarta(carta.cartaId)}
-            >
-              <div className="carta-interior">
-                <div className="carta-reverso"></div>
-                <div className="carta-frente">{carta.nombre}</div>
+      {!juegoTerminado && (
+        <div className="tablero">
+          {cartas.map((carta) => {
+            const esEncontrada = encontradas.includes(carta.cartaId);
+            const estaVolteada = volteadas.includes(carta.cartaId) || esEncontrada;
+            return (
+              <div
+                key={carta.cartaId}
+                className={`carta ${estaVolteada ? "volteada" : ""} ${esEncontrada ? "encontrada" : ""}`}
+                onClick={() => manejarClickCarta(carta.cartaId)}
+              >
+                <div className="carta-interior">
+                  <div className="carta-reverso"></div>
+                  <div className="carta-frente">{carta.nombre}</div>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,31 +1,26 @@
-import sql from "mssql";
+import pg from "pg";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-// Configuracion de conexion a SQL Server usando las variables de .env
+const { Pool } = pg;
+
+// Configuracion de conexion a PostgreSQL usando las variables de .env
 const config = {
-  server: process.env.DB_SERVER,
+  host: process.env.DB_HOST,
   database: process.env.DB_DATABASE,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT) || 1433,
-  options: {
-    encrypt: true,
-    trustServerCertificate: true,
+  port: Number(process.env.DB_PORT) || 5432,
+  ssl: {
+    rejectUnauthorized: false,
   },
 };
 
 // Pool de conexiones: se reutiliza en toda la app en vez de abrir
 // una conexion nueva por cada request
-let pool;
+const pool = new Pool(config);
 
 export async function getPool() {
-  if (!pool) {
-    pool = await sql.connect(config);
-    console.log("Conectado a SQL Server");
-  }
   return pool;
 }
-
-export { sql };
